@@ -16,6 +16,8 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -267,6 +269,11 @@ const MeetingList: React.FC = () => {
   const { state, dispatch, createMeeting } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error",
+  });
 
   const handleCreateMeeting = () => {
     setEditingMeeting(null);
@@ -279,37 +286,75 @@ const MeetingList: React.FC = () => {
   };
 
   const handleDeleteMeeting = (id: string) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this meeting? This action cannot be undone."
-      )
-    ) {
-      dispatch({ type: "DELETE_MEETING", payload: id });
+    const meeting = state.data.meetings.find((m) => m.id === id);
+    const issueCount = meeting?.issues.length || 0;
+
+    const confirmMessage =
+      issueCount > 0
+        ? `Are you sure you want to delete the meeting "${meeting?.title}"? This will also delete ${issueCount} issue(s). This action cannot be undone.`
+        : `Are you sure you want to delete the meeting "${meeting?.title}"? This action cannot be undone.`;
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        dispatch({ type: "DELETE_MEETING", payload: id });
+        setSnackbar({
+          open: true,
+          message: `Meeting "${meeting?.title}" deleted successfully`,
+          severity: "success",
+        });
+        console.log(`Meeting ${id} deleted successfully`);
+      } catch (error) {
+        console.error("Error deleting meeting:", error);
+        setSnackbar({
+          open: true,
+          message: "Error deleting meeting. Please try again.",
+          severity: "error",
+        });
+      }
     }
   };
 
   const handleSaveMeeting = (
     meetingData: Omit<Meeting, "id" | "issues"> & { id?: string }
   ) => {
-    if (meetingData.id) {
-      // Edit existing meeting
-      const existingMeeting = state.data.meetings.find(
-        (m) => m.id === meetingData.id
-      );
-      if (existingMeeting) {
-        dispatch({
-          type: "UPDATE_MEETING",
-          payload: {
-            ...existingMeeting,
-            title: meetingData.title,
-            client: meetingData.client,
-            date: meetingData.date,
-          },
+    try {
+      if (meetingData.id) {
+        // Edit existing meeting
+        const existingMeeting = state.data.meetings.find(
+          (m) => m.id === meetingData.id
+        );
+        if (existingMeeting) {
+          dispatch({
+            type: "UPDATE_MEETING",
+            payload: {
+              ...existingMeeting,
+              title: meetingData.title,
+              client: meetingData.client,
+              date: meetingData.date,
+            },
+          });
+          setSnackbar({
+            open: true,
+            message: `Meeting "${meetingData.title}" updated successfully`,
+            severity: "success",
+          });
+        }
+      } else {
+        // Create new meeting
+        createMeeting(meetingData.title, meetingData.date, meetingData.client);
+        setSnackbar({
+          open: true,
+          message: `Meeting "${meetingData.title}" created successfully`,
+          severity: "success",
         });
       }
-    } else {
-      // Create new meeting
-      createMeeting(meetingData.title, meetingData.date, meetingData.client);
+    } catch (error) {
+      console.error("Error saving meeting:", error);
+      setSnackbar({
+        open: true,
+        message: "Error saving meeting. Please try again.",
+        severity: "error",
+      });
     }
   };
 
@@ -393,6 +438,20 @@ const MeetingList: React.FC = () => {
         onClose={() => setDialogOpen(false)}
         onSave={handleSaveMeeting}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

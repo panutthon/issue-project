@@ -14,6 +14,7 @@ import {
   Dashboard as DashboardIcon,
   Event as EventIcon,
   Note as NoteIcon,
+  BugReport as BugReportIcon,
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { useApp } from "../utils/hooks";
@@ -41,6 +42,12 @@ const Sidebar: React.FC = () => {
       text: "Quick Notes",
       icon: <NoteIcon />,
       path: "/quick-notes",
+      badge: null,
+    },
+    {
+      text: "Debug",
+      icon: <BugReportIcon />,
+      path: "/debug",
       badge: null,
     },
   ];

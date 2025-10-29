@@ -7,7 +7,8 @@ import { useApp } from "../utils/hooks";
 
 // Components
 import { Dashboard, MeetingList, QuickNotes, Sidebar, Header } from "./index";
-import MeetingDetailFixed from "./MeetingDetailFixed";
+import MeetingDetailEnhanced from "./MeetingDetailEnhanced";
+import DebugPanel from "./DebugPanel";
 
 const ThemedApp: React.FC = () => {
   const { state } = useApp();
@@ -39,8 +40,12 @@ const ThemedApp: React.FC = () => {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/meetings" element={<MeetingList />} />
-                <Route path="/meetings/:id" element={<MeetingDetailFixed />} />
+                <Route
+                  path="/meetings/:id"
+                  element={<MeetingDetailEnhanced />}
+                />
                 <Route path="/quick-notes" element={<QuickNotes />} />
+                <Route path="/debug" element={<DebugPanel />} />
               </Routes>
             </Box>
           </Box>
