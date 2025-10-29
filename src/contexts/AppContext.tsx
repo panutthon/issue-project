@@ -91,18 +91,16 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     }
 
     case "UPDATE_ISSUE": {
-      const meetingsWithUpdatedIssue = state.data.meetings.map((meeting) =>
-        meeting.id === action.payload.meetingId
-          ? {
-              ...meeting,
-              issues: meeting.issues.map((issue) =>
-                issue.id === action.payload.issue.id
-                  ? action.payload.issue
-                  : issue
-              ),
-            }
-          : meeting
-      );
+      const meetingsWithUpdatedIssue = state.data.meetings.map((meeting) => {
+        if (meeting.id === action.payload.meetingId) {
+          const updatedIssues = meeting.issues.map((issue) =>
+            issue.id === action.payload.issue.id ? action.payload.issue : issue
+          );
+          return { ...meeting, issues: updatedIssues };
+        }
+        return meeting;
+      });
+
       const dataWithUpdatedIssue = {
         ...state.data,
         meetings: meetingsWithUpdatedIssue,
@@ -112,16 +110,16 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     }
 
     case "DELETE_ISSUE": {
-      const meetingsWithDeletedIssue = state.data.meetings.map((meeting) =>
-        meeting.id === action.payload.meetingId
-          ? {
-              ...meeting,
-              issues: meeting.issues.filter(
-                (issue) => issue.id !== action.payload.issueId
-              ),
-            }
-          : meeting
-      );
+      const meetingsWithDeletedIssue = state.data.meetings.map((meeting) => {
+        if (meeting.id === action.payload.meetingId) {
+          const filteredIssues = meeting.issues.filter(
+            (issue) => issue.id !== action.payload.issueId
+          );
+          return { ...meeting, issues: filteredIssues };
+        }
+        return meeting;
+      });
+
       const dataWithDeletedIssue = {
         ...state.data,
         meetings: meetingsWithDeletedIssue,
@@ -135,10 +133,14 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
 
     case "TOGGLE_DARK_MODE": {
       const newDarkMode = !state.darkMode;
-      localStorage.setItem(
-        "meeting-tracker-dark-mode",
-        JSON.stringify(newDarkMode)
-      );
+      try {
+        localStorage.setItem(
+          "meeting-tracker-dark-mode",
+          JSON.stringify(newDarkMode)
+        );
+      } catch (error) {
+        console.error("Error saving dark mode preference:", error);
+      }
       return { ...state, darkMode: newDarkMode };
     }
 
@@ -199,9 +201,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   useEffect(() => {
     const data = loadData();
     const quickNotes = loadQuickNotes();
-    const darkMode = JSON.parse(
-      localStorage.getItem("meeting-tracker-dark-mode") || "false"
-    );
+
+    let darkMode = false;
+    try {
+      const storedDarkMode = localStorage.getItem("meeting-tracker-dark-mode");
+      darkMode = storedDarkMode ? JSON.parse(storedDarkMode) : false;
+    } catch (error) {
+      console.error("Error loading dark mode preference:", error);
+    }
 
     dispatch({ type: "SET_DATA", payload: data });
     dispatch({ type: "SET_QUICK_NOTES", payload: quickNotes });

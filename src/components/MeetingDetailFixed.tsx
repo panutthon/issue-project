@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -63,7 +63,7 @@ const IssueDialog: React.FC<{
   const [solution, setSolution] = useState("");
   const [note, setNote] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (issue) {
       setTopic(issue.topic);
       setStatus(issue.status);
@@ -79,7 +79,7 @@ const IssueDialog: React.FC<{
       setSolution("");
       setNote("");
     }
-  }, [issue]);
+  }, [issue, open]);
 
   const handleSave = () => {
     if (topic.trim()) {
@@ -170,7 +170,11 @@ const IssueDialog: React.FC<{
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained">
+        <Button
+          onClick={handleSave}
+          variant="contained"
+          disabled={!topic.trim()}
+        >
           {issue ? "Save Changes" : "Create Issue"}
         </Button>
       </DialogActions>
@@ -178,7 +182,7 @@ const IssueDialog: React.FC<{
   );
 };
 
-const MeetingDetail: React.FC = () => {
+const MeetingDetailFixed: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { state, dispatch } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -220,25 +224,44 @@ const MeetingDetail: React.FC = () => {
 
   const handleSaveIssue = (issueData: Omit<Issue, "id"> & { id?: string }) => {
     if (issueData.id) {
-      // Edit existing issue
+      // แก้ไข issue ที่มีอยู่แล้ว
+      const updatedIssue: Issue = {
+        id: issueData.id,
+        topic: issueData.topic,
+        status: issueData.status,
+        priority: issueData.priority,
+        assignee: issueData.assignee,
+        solution: issueData.solution,
+        note: issueData.note,
+      };
+
       dispatch({
         type: "UPDATE_ISSUE",
         payload: {
           meetingId: meeting.id,
-          issue: { ...issueData, id: issueData.id } as Issue,
+          issue: updatedIssue,
         },
       });
     } else {
-      // Create new issue
+      // สร้าง issue ใหม่
       const newIssue: Issue = {
         id: `iss-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        ...issueData,
+        topic: issueData.topic,
+        status: issueData.status,
+        priority: issueData.priority,
+        assignee: issueData.assignee,
+        solution: issueData.solution,
+        note: issueData.note,
       };
+
       dispatch({
         type: "ADD_ISSUE",
         payload: { meetingId: meeting.id, issue: newIssue },
       });
     }
+
+    setDialogOpen(false);
+    setEditingIssue(null);
   };
 
   const getStatusCounts = () => {
@@ -398,7 +421,7 @@ const MeetingDetail: React.FC = () => {
                       <TableCell>
                         <strong>Solution</strong>
                       </TableCell>
-                      <TableCell>
+                      <TableCell align="center">
                         <strong>Actions</strong>
                       </TableCell>
                     </TableRow>
@@ -406,7 +429,7 @@ const MeetingDetail: React.FC = () => {
                   <TableBody>
                     {meeting.issues.map((issue) => (
                       <TableRow key={issue.id} hover>
-                        <TableCell sx={{ maxWidth: 200 }}>
+                        <TableCell sx={{ maxWidth: 250 }}>
                           <Typography variant="body2">{issue.topic}</Typography>
                         </TableCell>
                         <TableCell>
@@ -431,7 +454,7 @@ const MeetingDetail: React.FC = () => {
                             {issue.assignee || "-"}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ maxWidth: 200 }}>
+                        <TableCell sx={{ maxWidth: 250 }}>
                           <Typography
                             variant="body2"
                             sx={{
@@ -439,15 +462,17 @@ const MeetingDetail: React.FC = () => {
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
                             }}
+                            title={issue.solution}
                           >
                             {issue.solution || "-"}
                           </Typography>
                         </TableCell>
-                        <TableCell>
+                        <TableCell align="center">
                           <IconButton
                             size="small"
                             onClick={() => handleEditIssue(issue)}
                             sx={{ mr: 1 }}
+                            title="Edit"
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -455,6 +480,7 @@ const MeetingDetail: React.FC = () => {
                             size="small"
                             onClick={() => handleDeleteIssue(issue.id)}
                             color="error"
+                            title="Delete"
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
@@ -471,7 +497,10 @@ const MeetingDetail: React.FC = () => {
         <IssueDialog
           open={dialogOpen}
           issue={editingIssue}
-          onClose={() => setDialogOpen(false)}
+          onClose={() => {
+            setDialogOpen(false);
+            setEditingIssue(null);
+          }}
           onSave={handleSaveIssue}
         />
       </Box>
@@ -479,4 +508,4 @@ const MeetingDetail: React.FC = () => {
   );
 };
 
-export default MeetingDetail;
+export default MeetingDetailFixed;
