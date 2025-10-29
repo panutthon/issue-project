@@ -1,0 +1,61 @@
+/* Global styles for Meeting Issue Tracker */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Link styles */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Smooth transitions */
+* {
+    transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+/* Hide focus outline on click, show on keyboard navigation */
+.js-focus-visible :focus:not(.focus-visible) {
+    outline: none;
+}
+
+/* Ensure proper layout for full height */
+#root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
