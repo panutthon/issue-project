@@ -74,9 +74,11 @@ const Dashboard: React.FC = () => {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
-  const totalIssues = stats.totalIssues;
-  const solvedPercentage =
-    totalIssues > 0 ? (stats.solvedIssues / totalIssues) * 100 : 0;
+  const quickNotes = state.quickNotes || [];
+
+  // นับเฉพาะ issues ที่ยังไม่เสร็จ (ไม่นับ solved และ archived)
+  const activeIssuesCount = stats.pendingIssues + stats.inProgressIssues;
+  const totalActiveIssues = activeIssuesCount;
 
   return (
     <Box>
@@ -114,8 +116,8 @@ const Dashboard: React.FC = () => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <StatCard
-            title="Total Issues"
-            value={stats.totalIssues}
+            title="Active Issues"
+            value={totalActiveIssues}
             icon={<Assignment />}
             color="info"
             delay={0.1}
@@ -177,10 +179,10 @@ const Dashboard: React.FC = () => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <StatCard
-            title="Active Issues"
-            value={stats.pendingIssues + stats.inProgressIssues}
+            title="Quick Notes"
+            value={quickNotes.length}
             icon={<Schedule />}
-            color="warning"
+            color="info"
             delay={0.7}
           />
         </Grid>
@@ -195,25 +197,29 @@ const Dashboard: React.FC = () => {
         <Card sx={{ mb: 4 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              Issue Status Overview
+              Active Issues Progress
             </Typography>
 
-            {/* Overall Progress */}
+            {/* Active Issues Progress */}
             <Box sx={{ mb: 3 }}>
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
               >
                 <Typography variant="body2" color="text.secondary">
-                  Overall Progress
+                  Progress
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {stats.solvedIssues} of {stats.totalIssues} completed (
-                  {solvedPercentage.toFixed(1)}%)
+                  {stats.inProgressIssues} of {totalActiveIssues} active issues
+                  in progress
                 </Typography>
               </Box>
               <LinearProgress
                 variant="determinate"
-                value={solvedPercentage}
+                value={
+                  totalActiveIssues > 0
+                    ? (stats.inProgressIssues / totalActiveIssues) * 100
+                    : 0
+                }
                 sx={{ height: 8, borderRadius: 4 }}
               />
             </Box>
