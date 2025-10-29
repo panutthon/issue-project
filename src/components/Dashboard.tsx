@@ -16,6 +16,10 @@ import {
   Event,
   Assignment,
   CheckCircle,
+  Schedule,
+  Archive,
+  Percent,
+  PlayArrow,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -27,7 +31,8 @@ const StatCard: React.FC<{
   icon: React.ReactNode;
   color: string;
   delay: number;
-}> = ({ title, value, icon, color, delay }) => (
+  suffix?: string;
+}> = ({ title, value, icon, color, delay, suffix = "" }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -50,6 +55,7 @@ const StatCard: React.FC<{
           <Box>
             <Typography variant="h4" component="div" fontWeight="bold">
               {value}
+              {suffix}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {title}
@@ -97,7 +103,7 @@ const Dashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <StatCard
             title="Total Meetings"
             value={stats.totalMeetings}
@@ -106,7 +112,7 @@ const Dashboard: React.FC = () => {
             delay={0}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <StatCard
             title="Total Issues"
             value={stats.totalIssues}
@@ -115,7 +121,7 @@ const Dashboard: React.FC = () => {
             delay={0.1}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <StatCard
             title="Pending Issues"
             value={stats.pendingIssues}
@@ -124,13 +130,58 @@ const Dashboard: React.FC = () => {
             delay={0.2}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+          <StatCard
+            title="In Progress"
+            value={stats.inProgressIssues}
+            icon={<PlayArrow />}
+            color="info"
+            delay={0.3}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
           <StatCard
             title="Solved Issues"
             value={stats.solvedIssues}
             icon={<CheckCircle />}
             color="success"
-            delay={0.3}
+            delay={0.4}
+          />
+        </Grid>
+      </Grid>
+
+      {/* Additional Status Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <StatCard
+            title="Archived Issues"
+            value={stats.archivedIssues}
+            icon={<Archive />}
+            color="default"
+            delay={0.5}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <StatCard
+            title="Completion Rate"
+            value={Math.round(
+              stats.totalIssues > 0
+                ? (stats.solvedIssues / stats.totalIssues) * 100
+                : 0
+            )}
+            icon={<Percent />}
+            color="success"
+            delay={0.6}
+            suffix="%"
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <StatCard
+            title="Active Issues"
+            value={stats.pendingIssues + stats.inProgressIssues}
+            icon={<Schedule />}
+            color="warning"
+            delay={0.7}
           />
         </Grid>
       </Grid>
@@ -144,40 +195,74 @@ const Dashboard: React.FC = () => {
         <Card sx={{ mb: 4 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              Issue Resolution Progress
+              Issue Status Overview
             </Typography>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                {stats.solvedIssues} of {stats.totalIssues} issues resolved (
-                {solvedPercentage.toFixed(1)}%)
-              </Typography>
+
+            {/* Overall Progress */}
+            <Box sx={{ mb: 3 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Overall Progress
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {stats.solvedIssues} of {stats.totalIssues} completed (
+                  {solvedPercentage.toFixed(1)}%)
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={solvedPercentage}
+                sx={{ height: 8, borderRadius: 4 }}
+              />
             </Box>
-            <LinearProgress
-              variant="determinate"
-              value={solvedPercentage}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
-            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-              <Chip
-                label={`${stats.pendingIssues} Pending`}
-                color="warning"
-                size="small"
-              />
-              <Chip
-                label={`${stats.inProgressIssues} In Progress`}
-                color="info"
-                size="small"
-              />
-              <Chip
-                label={`${stats.solvedIssues} Solved`}
-                color="success"
-                size="small"
-              />
-              <Chip
-                label={`${stats.archivedIssues} Archived`}
-                color="default"
-                size="small"
-              />
+
+            {/* Status Breakdown */}
+            <Typography variant="subtitle2" gutterBottom>
+              Status Breakdown
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              {stats.pendingIssues > 0 && (
+                <Chip
+                  label={`${stats.pendingIssues} Pending`}
+                  color="warning"
+                  size="small"
+                  icon={<Schedule />}
+                />
+              )}
+              {stats.inProgressIssues > 0 && (
+                <Chip
+                  label={`${stats.inProgressIssues} In Progress`}
+                  color="info"
+                  size="small"
+                  icon={<PlayArrow />}
+                />
+              )}
+              {stats.solvedIssues > 0 && (
+                <Chip
+                  label={`${stats.solvedIssues} Solved`}
+                  color="success"
+                  size="small"
+                  icon={<CheckCircle />}
+                />
+              )}
+              {stats.archivedIssues > 0 && (
+                <Chip
+                  label={`${stats.archivedIssues} Archived`}
+                  color="default"
+                  size="small"
+                  icon={<Archive />}
+                />
+              )}
+              {stats.totalIssues === 0 && (
+                <Chip
+                  label="No issues yet"
+                  color="default"
+                  size="small"
+                  variant="outlined"
+                />
+              )}
             </Box>
           </CardContent>
         </Card>
